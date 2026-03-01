@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>YELA — Rejoins la communauté</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --orange: #E8530A;
+      --orange-light: #FF7A3D;
+      --yellow: #F5B800;
+      --red: #C0392B;
+      --dark: #0F0A00;
+      --dark-mid: #1A1200;
+      --text: #fff;
+      --text-soft: rgba(255,255,255,0.65);
+      --card-bg: rgba(255,255,255,0.04);
+      --card-border: rgba(245,184,0,0.18);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--dark);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        repeating-linear-gradient(45deg, rgba(232,83,10,0.03) 0px, rgba(232,83,10,0.03) 1px, transparent 1px, transparent 40px),
+        repeating-linear-gradient(-45deg, rgba(245,184,0,0.025) 0px, rgba(245,184,0,0.025) 1px, transparent 1px, transparent 40px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.2rem 4rem;
+      background: rgba(15,10,0,0.9);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(245,184,0,0.12);
+    }
+
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: white;
+      letter-spacing: 3px;
+      text-decoration: none;
+    }
+
+    .logo span { color: var(--yellow); }
+
+    .nav-back {
+      color: var(--text-soft);
+      text-decoration: none;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: color 0.3s;
+    }
+
+    .nav-back:hover { color: var(--yellow); }
+
+    /* KENTE TOP BAND */
+    .kente-band {
+      position: fixed;
+      top: 72px; left: 0; right: 0;
+      height: 4px;
+      z-index: 99;
+      background: repeating-linear-gradient(90deg,
+        var(--orange) 0px, var(--orange) 20px,
+        var(--yellow) 20px, var(--yellow) 40px,
+        var(--red) 40px, var(--red) 60px,
+        var(--dark) 60px, var(--dark) 80px
+      );
+    }
+
+    /* MAIN LAYOUT */
+    .page {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding-top: 76px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* LEFT PANEL */
+    .left-panel {
+      padding: 5rem 4rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .left-panel::after {
+      content: '';
+      position: absolute;
+      right: 0; top: 0; bottom: 0;
+      width: 1px;
+      background: linear-gradient(180deg, transparent, rgba(245,184,0,0.2), transparent);
+    }
+
+    /* Cercles déco */
+    .deco-circle {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid;
+      animation: spin-slow linear infinite;
+      pointer-events: none;
+    }
+
+    .deco-circle:nth-child(1) {
+      width: 400px; height: 400px;
+      bottom: -150px; left: -150px;
+      border-color: rgba(232,83,10,0.15);
+      animation-duration: 35s;
+    }
+
+    .deco-circle:nth-child(2) {
+      width: 260px; height: 260px;
+      bottom: -80px; left: -80px;
+      border-color: rgba(245,184,0,0.2);
+      animation-duration: 22s;
+      animation-direction: reverse;
+    }
+
+    @keyframes spin-slow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .left-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: rgba(245,184,0,0.1);
+      border: 1px solid rgba(245,184,0,0.25);
+      color: var(--yellow);
+      padding: 0.45rem 1rem;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 2rem;
+      width: fit-content;
+      animation: fadeUp 0.7s ease both;
+    }
+
+    .left-tag::before {
+      content: '';
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--yellow);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(1.6); }
+    }
+
+    .left-panel h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.2rem, 3.5vw, 3.2rem);
+      line-height: 1.1;
+      color: white;
+      margin-bottom: 1.2rem;
+      animation: fadeUp 0.7s 0.15s ease both;
+    }
+
+    .left-panel h1 em {
+      font-style: italic;
+      background: linear-gradient(90deg, var(--orange-light), var(--yellow));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .left-panel p {
+      color: var(--text-soft);
+      font-weight: 300;
+      font-size: 1rem;
+      line-height: 1.8;
+      max-width: 420px;
+      margin-bottom: 3rem;
+      animation: fadeUp 0.7s 0.3s ease both;
+    }
+
+    /* AVANTAGES */
+    .avantages {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      animation: fadeUp 0.7s 0.45s ease both;
+    }
+
+    .avantage {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .avantage-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: rgba(232,83,10,0.12);
+      border: 1px solid rgba(232,83,10,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .avantage-text h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: white;
+      margin-bottom: 0.2rem;
+    }
+
+    .avantage-text p {
+      font-size: 0.82rem;
+      color: var(--text-soft);
+      font-weight: 300;
+      line-height: 1.5;
+      margin-bottom: 0;
+    }
+
+    /* COMPTEUR */
+    .counter-box {
+      margin-top: 3rem;
+      padding: 1.2rem 1.5rem;
+      background: rgba(245,184,0,0.06);
+      border: 1px solid rgba(245,184,0,0.15);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      animation: fadeUp 0.7s 0.6s ease both;
+    }
+
+    .counter-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, var(--orange-light), var(--yellow));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+    }
+
+    .counter-text {
+      font-size: 0.85rem;
+      color: var(--text-soft);
+      font-weight: 300;
+      line-height: 1.5;
+    }
+
+    .counter-text strong {
+      color: white;
+      font-weight: 500;
+    }
+
+    /* RIGHT PANEL — FORM */
+    .right-panel {
+      padding: 5rem 4rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: rgba(255,255,255,0.015);
+    }
+
+    .form-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 3rem 2.5rem;
+      animation: fadeUp 0.7s 0.2s ease both;
+    }
+
+    .form-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      color: white;
+      margin-bottom: 0.5rem;
+    }
+
+    .form-subtitle {
+      font-size: 0.88rem;
+      color: var(--text-soft);
+      font-weight: 300;
+      margin-bottom: 2.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.4rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.8);
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.3px;
+    }
+
+    label span {
+      color: var(--orange-light);
+      margin-left: 2px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      padding: 0.85rem 1.1rem;
+      color: white;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 300;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input::placeholder, textarea::placeholder {
+      color: rgba(255,255,255,0.25);
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: rgba(245,184,0,0.5);
+      box-shadow: 0 0 0 3px rgba(245,184,0,0.08);
+    }
+
+    select option {
+      background: #1a1200;
+      color: white;
+    }
+
+    textarea {
+      resize: none;
+      height: 90px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    /* CHECKBOX GROUP */
+    .checkbox-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+      margin-top: 0.5rem;
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 0.65rem 0.85rem;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+
+    .checkbox-item:hover {
+      border-color: rgba(245,184,0,0.35);
+      background: rgba(245,184,0,0.05);
+    }
+
+    .checkbox-item input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.3);
+      padding: 0;
+      cursor: pointer;
+      accent-color: var(--orange);
+    }
+
+    .checkbox-item span {
+      font-size: 0.82rem;
+      color: var(--text-soft);
+      font-weight: 400;
+    }
+
+    .checkbox-item:has(input:checked) {
+      border-color: rgba(232,83,10,0.5);
+      background: rgba(232,83,10,0.08);
+    }
+
+    .checkbox-item:has(input:checked) span {
+      color: white;
+    }
+
+    /* SUBMIT BTN */
+    .btn-submit {
+      width: 100%;
+      background: linear-gradient(135deg, var(--orange), var(--yellow));
+      color: var(--dark);
+      border: none;
+      padding: 1.1rem;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 1.5rem;
+      letter-spacing: 0.5px;
+      box-shadow: 0 8px 30px rgba(232,83,10,0.35);
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 40px rgba(232,83,10,0.5);
+    }
+
+    .btn-submit:active { transform: translateY(0); }
+
+    .form-note {
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--text-soft);
+      font-weight: 300;
+      margin-top: 1rem;
+    }
+
+    /* SUCCESS STATE */
+    .success-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+      min-height: 400px;
+    }
+
+    .success-screen.show { display: flex; }
+    .form-card.hidden { display: none; }
+
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--orange), var(--yellow));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 0 60px rgba(245,184,0,0.4);
+      animation: pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+
+    @keyframes pop {
+      from { transform: scale(0); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .success-screen h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      color: white;
+      margin-bottom: 0.8rem;
+    }
+
+    .success-screen h2 em {
+      font-style: italic;
+      background: linear-gradient(90deg, var(--orange-light), var(--yellow));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .success-screen p {
+      color: var(--text-soft);
+      font-weight: 300;
+      font-size: 0.95rem;
+      line-height: 1.7;
+      max-width: 360px;
+      margin-bottom: 2rem;
+    }
+
+    .btn-home {
+      background: transparent;
+      color: var(--yellow);
+      border: 1px solid rgba(245,184,0,0.3);
+      padding: 0.85rem 2rem;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+
+    .btn-home:hover {
+      background: rgba(245,184,0,0.08);
+      border-color: var(--yellow);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      .page { grid-template-columns: 1fr; }
+      .left-panel { padding: 5rem 2rem 2rem; }
+      .right-panel { padding: 2rem; }
+      nav { padding: 1rem 1.5rem; }
+      .form-row { grid-template-columns: 1fr; }
+      .left-panel::after { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="yela-landing.html" class="logo">YEL<span>A</span></a>
+    <a href="yela-landing.html" class="nav-back">← Retour à l'accueil</a>
+  </nav>
+  <div class="kente-band"></div>
+
+  <div class="page">
+
+    <!-- LEFT PANEL -->
+    <div class="left-panel">
+      <div class="deco-circle"></div>
+      <div class="deco-circle"></div>
+
+      <div class="left-tag">Liste d'attente ouverte</div>
+
+      <h1>Sois parmi<br/>les <em>premiers</em><br/>à t'allumer</h1>
+
+      <p>Rejoins les pionniers de YELA. En t'inscrivant aujourd'hui, tu fais partie de ceux qui bâtissent cette communauté depuis le début.</p>
+
+      <div class="avantages">
+        <div class="avantage">
+          <div class="avantage-icon">🔥</div>
+          <div class="avantage-text">
+            <h4>Accès prioritaire</h4>
+            <p>Tu seras parmi les premiers à accéder à la plateforme dès son lancement.</p>
+          </div>
+        </div>
+        <div class="avantage">
+          <div class="avantage-icon">🌍</div>
+          <div class="avantage-text">
+            <h4>Membre fondateur</h4>
+            <p>Un badge spécial "Fondateur" sera attribué aux membres de la première vague.</p>
+          </div>
+        </div>
+        <div class="avantage">
+          <div class="avantage-icon">⭐</div>
+          <div class="avantage-text">
+            <h4>Influence sur le produit</h4>
+            <p>Tes retours façonneront directement les fonctionnalités de YELA.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="counter-box">
+        <div class="counter-num" id="counter">0</div>
+        <div class="counter-text">
+          <strong>jeunes déjà inscrits</strong><br/>
+          rejoignent la liste d'attente YELA 🇨🇲
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right-panel">
+
+      <div class="form-card" id="formCard">
+        <h2 class="form-title">Crée ton profil</h2>
+        <p class="form-subtitle">Quelques infos pour te rejoindre à la bonne communauté.</p>
+
+        <form id="yelаForm" novalidate>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Prénom <span>*</span></label>
+              <input type="text" id="prenom" placeholder="Ton prénom" required />
+            </div>
+            <div class="form-group">
+              <label>Nom <span>*</span></label>
+              <input type="text" id="nom" placeholder="Ton nom" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Email <span>*</span></label>
+            <input type="email" id="email" placeholder="ton@email.com" required />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Âge <span>*</span></label>
+              <select id="age" required>
+                <option value="" disabled selected>Sélectionne</option>
+                <option value="15-17">15 – 17 ans</option>
+                <option value="18-22">18 – 22 ans</option>
+                <option value="23-27">23 – 27 ans</option>
+                <option value="28-35">28 – 35 ans</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Ville <span>*</span></label>
+              <select id="ville" required>
+                <option value="" disabled selected>Ta ville</option>
+                <option value="yaounde">Yaoundé</option>
+                <option value="douala">Douala</option>
+                <option value="bafoussam">Bafoussam</option>
+                <option value="garoua">Garoua</option>
+                <option value="bamenda">Bamenda</option>
+                <option value="buea">Buea</option>
+                <option value="autre">Autre ville</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Qu'est-ce que tu cherches sur YELA ? <span>*</span></label>
+            <div class="checkbox-group">
+              <label class="checkbox-item">
+                <input type="checkbox" value="confiance" />
+                <span>💪 Confiance en soi</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" value="orientation" />
+                <span>🧭 Orientation</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" value="entrepreneuriat" />
+                <span>🚀 Entrepreneuriat</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" value="reseau" />
+                <span>🤝 Réseau & liens</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" value="coaching" />
+                <span>🌱 Coaching mutuel</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" value="formation" />
+                <span>📚 Formation</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Dis-nous en plus sur toi (facultatif)</label>
+            <textarea id="bio" placeholder="Qui es-tu ? Quels sont tes rêves, tes projets ?"></textarea>
+          </div>
+
+          <button type="submit" class="btn-submit">🔥 Je rejoins YELA</button>
+
+          <p class="form-note">🔒 Tes données sont privées et ne seront jamais partagées.</p>
+
+        </form>
+      </div>
+
+      <!-- SUCCESS -->
+      <div class="success-screen" id="successScreen">
+        <div class="success-icon">🔥</div>
+        <h2>Tu es dans la <em>flamme</em> !</h2>
+        <p>Bienvenue dans la communauté YELA. Tu seras parmi les premiers informés du lancement. Prépare-toi à t'allumer !</p>
+        <a href="yela-landing.html" class="btn-home">← Retour à l'accueil</a>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // Animation compteur
+    function animateCounter(target, duration = 2000) {
+      const el = document.getElementById('counter');
+      let start = 0;
+      const step = target / (duration / 16);
+      const timer = setInterval(() => {
+        start += step;
+        if (start >= target) {
+          el.textContent = target;
+          clearInterval(timer);
+        } else {
+          el.textContent = Math.floor(start);
+        }
+      }, 16);
+    }
+
+    // Lance le compteur après un délai
+    setTimeout(() => animateCounter(247), 800);
+
+    // Gestion du formulaire
+    document.getElementById('yelаForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const prenom = document.getElementById('prenom').value.trim();
+      const nom = document.getElementById('nom').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const age = document.getElementById('age').value;
+      const ville = document.getElementById('ville').value;
+      const checked = document.querySelectorAll('.checkbox-group input:checked');
+
+      // Validation simple
+      if (!prenom || !nom || !email || !age || !ville) {
+        const inputs = [
+          document.getElementById('prenom'),
+          document.getElementById('nom'),
+          document.getElementById('email'),
+          document.getElementById('age'),
+          document.getElementById('ville')
+        ];
+        inputs.forEach(inp => {
+          if (!inp.value.trim()) {
+            inp.style.borderColor = 'rgba(232,83,10,0.7)';
+            inp.style.boxShadow = '0 0 0 3px rgba(232,83,10,0.1)';
+            setTimeout(() => {
+              inp.style.borderColor = '';
+              inp.style.boxShadow = '';
+            }, 2500);
+          }
+        });
+        return;
+      }
+
+      if (checked.length === 0) {
+        document.querySelector('.checkbox-group').style.outline = '1px solid rgba(232,83,10,0.5)';
+        document.querySelector('.checkbox-group').style.borderRadius = '8px';
+        setTimeout(() => {
+          document.querySelector('.checkbox-group').style.outline = '';
+        }, 2500);
+        return;
+      }
+
+      // Afficher succès
+      document.getElementById('formCard').classList.add('hidden');
+      document.getElementById('successScreen').classList.add('show');
+
+      // Update counter
+      const currentCount = parseInt(document.getElementById('counter').textContent);
+      document.getElementById('counter').textContent = currentCount + 1;
+    });
+
+    // Reset border on input
+    document.querySelectorAll('input, select').forEach(el => {
+      el.addEventListener('input', () => {
+        el.style.borderColor = '';
+        el.style.boxShadow = '';
+      });
+    });
+  </script>
+
+</body>
+</html>

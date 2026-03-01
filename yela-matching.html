@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>YELA — Trouver mon Pair</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --orange: #E8530A;
+      --orange-light: #FF7A3D;
+      --yellow: #F5B800;
+      --red: #C0392B;
+      --dark: #0F0A00;
+      --dark-mid: #1A1200;
+      --dark-card: #141000;
+      --text: #fff;
+      --text-soft: rgba(255,255,255,0.55);
+      --text-mid: rgba(255,255,255,0.75);
+      --border: rgba(245,184,0,0.12);
+      --border-hover: rgba(245,184,0,0.35);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--dark);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        repeating-linear-gradient(45deg, rgba(232,83,10,0.025) 0px, rgba(232,83,10,0.025) 1px, transparent 1px, transparent 50px),
+        repeating-linear-gradient(-45deg, rgba(245,184,0,0.018) 0px, rgba(245,184,0,0.018) 1px, transparent 1px, transparent 50px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      width: 260px;
+      min-height: 100vh;
+      background: rgba(20,16,0,0.95);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 50;
+    }
+
+    .sidebar-logo { padding: 1.8rem 1.8rem 1.5rem; border-bottom: 1px solid var(--border); }
+    .logo-text { font-family: 'Playfair Display', serif; font-size: 1.7rem; font-weight: 700; color: white; letter-spacing: 3px; text-decoration: none; display: block; }
+    .logo-text span { color: var(--yellow); }
+    .logo-tagline { font-size: 0.7rem; color: var(--text-soft); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 2px; }
+
+    .kente-strip {
+      height: 3px;
+      background: repeating-linear-gradient(90deg, var(--orange) 0px, var(--orange) 12px, var(--yellow) 12px, var(--yellow) 24px, var(--red) 24px, var(--red) 36px, var(--dark) 36px, var(--dark) 48px);
+    }
+
+    .sidebar-user { padding: 1.5rem 1.8rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.9rem; }
+    .user-avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--orange), var(--yellow)); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 700; color: var(--dark); flex-shrink: 0; font-family: 'Playfair Display', serif; }
+    .user-info h4 { font-size: 0.92rem; font-weight: 600; color: white; }
+    .user-info p { font-size: 0.72rem; color: var(--orange-light); }
+    .online-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; margin-left: auto; box-shadow: 0 0 8px rgba(34,197,94,0.6); animation: blink 2s infinite; flex-shrink: 0; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    .sidebar-nav { flex: 1; padding: 1.2rem 0; overflow-y: auto; }
+    .nav-section-label { font-size: 0.65rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--text-soft); padding: 0.8rem 1.8rem 0.4rem; }
+    .nav-item { display: flex; align-items: center; gap: 0.85rem; padding: 0.7rem 1.8rem; cursor: pointer; transition: all 0.25s; border-left: 2px solid transparent; text-decoration: none; color: var(--text-mid); }
+    .nav-item:hover { background: rgba(245,184,0,0.05); color: white; border-left-color: rgba(245,184,0,0.3); }
+    .nav-item.active { background: rgba(232,83,10,0.1); color: white; border-left-color: var(--orange); }
+    .nav-icon { font-size: 1.05rem; width: 22px; text-align: center; }
+    .nav-label { font-size: 0.88rem; }
+    .nav-badge { margin-left: auto; background: var(--orange); color: white; font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.45rem; border-radius: 10px; }
+
+    .sidebar-footer { padding: 1.2rem 1.8rem; border-top: 1px solid var(--border); }
+    .level-box { background: rgba(245,184,0,0.06); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
+    .level-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; }
+    .level-label { font-size: 0.75rem; color: var(--text-soft); }
+    .level-name { font-size: 0.78rem; font-weight: 600; color: var(--yellow); }
+    .progress-bar { height: 5px; background: rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--orange), var(--yellow)); border-radius: 10px; transition: width 1s ease; }
+    .level-xp { font-size: 0.7rem; color: var(--text-soft); margin-top: 0.4rem; text-align: right; }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--dark); }
+    ::-webkit-scrollbar-thumb { background: rgba(245,184,0,0.2); border-radius: 10px; }
+
+    /* ===== MAIN ===== */
+    .main { margin-left: 260px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; position: relative; z-index: 1; }
+
+    .topbar { padding: 1.2rem 2.5rem; background: rgba(15,10,0,0.8); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 40; }
+    .topbar-left h2 { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: white; }
+    .topbar-left p { font-size: 0.8rem; color: var(--text-soft); font-weight: 300; margin-top: 1px; }
+
+    .topbar-filters { display: flex; gap: 0.6rem; }
+
+    .filter-btn {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-soft);
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+
+    .filter-btn:hover, .filter-btn.active {
+      background: rgba(232,83,10,0.12);
+      border-color: rgba(232,83,10,0.35);
+      color: var(--orange-light);
+    }
+
+    /* ===== CONTENT ===== */
+    .content { padding: 2rem 2.5rem; flex: 1; }
+
+    /* MATCHING HERO */
+    .match-hero {
+      background: rgba(20,16,0,0.9);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem;
+      margin-bottom: 2rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .match-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 70% 100% at 50% 50%, rgba(232,83,10,0.08) 0%, transparent 70%);
+    }
+
+    /* ORBITES ANIMÉES */
+    .orbit-wrap {
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      width: 300px; height: 300px;
+      pointer-events: none;
+    }
+
+    .orbit {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px dashed;
+      animation: spin-orbit linear infinite;
+    }
+
+    .orbit-1 { inset: 0; border-color: rgba(232,83,10,0.15); animation-duration: 20s; }
+    .orbit-2 { inset: 30px; border-color: rgba(245,184,0,0.12); animation-duration: 15s; animation-direction: reverse; }
+    .orbit-3 { inset: 60px; border-color: rgba(232,83,10,0.1); animation-duration: 10s; }
+
+    .orbit-dot {
+      position: absolute;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--orange);
+      top: -4px; left: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 0 8px rgba(232,83,10,0.6);
+    }
+
+    .orbit-2 .orbit-dot { background: var(--yellow); box-shadow: 0 0 8px rgba(245,184,0,0.6); }
+
+    @keyframes spin-orbit { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+    .hero-content { position: relative; z-index: 2; }
+
+    .hero-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: rgba(245,184,0,0.1);
+      border: 1px solid rgba(245,184,0,0.25);
+      color: var(--yellow);
+      padding: 0.4rem 1rem;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    .hero-label::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--yellow); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(1.5)} }
+
+    .match-hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      color: white;
+      margin-bottom: 0.6rem;
+    }
+
+    .match-hero h1 em {
+      font-style: italic;
+      background: linear-gradient(90deg, var(--orange-light), var(--yellow));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .match-hero p { color: var(--text-soft); font-weight: 300; font-size: 0.9rem; max-width: 500px; margin: 0 auto 1.5rem; line-height: 1.7; }
+
+    .hero-stats-row { display: flex; justify-content: center; gap: 3rem; }
+    .hstat { text-align: center; }
+    .hstat-num { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; background: linear-gradient(90deg, var(--orange-light), var(--yellow)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hstat-label { font-size: 0.72rem; color: var(--text-soft); font-weight: 300; }
+
+    /* LAYOUT PRINCIPAL */
+    .match-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 1.5rem;
+      animation: fadeUp 0.6s 0.15s ease both;
+    }
+
+    /* FILTRES SIDEBAR */
+    .filters-panel {
+      background: rgba(20,16,0,0.85);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem;
+      height: fit-content;
+      position: sticky;
+      top: 100px;
+    }
+
+    .filters-panel h3 { font-family: 'Playfair Display', serif; font-size: 1rem; color: white; margin-bottom: 1.2rem; }
+
+    .filter-section { margin-bottom: 1.5rem; }
+
+    .filter-section-title {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--orange-light);
+      margin-bottom: 0.7rem;
+    }
+
+    .filter-options { display: flex; flex-direction: column; gap: 0.4rem; }
+
+    .filter-option {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.5rem 0.7rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.82rem;
+      color: var(--text-mid);
+    }
+
+    .filter-option:hover { background: rgba(255,255,255,0.04); }
+
+    .filter-option.selected {
+      background: rgba(232,83,10,0.1);
+      color: var(--orange-light);
+    }
+
+    .filter-check {
+      width: 18px; height: 18px;
+      border-radius: 5px;
+      border: 1.5px solid rgba(255,255,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.6rem;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .filter-option.selected .filter-check {
+      background: linear-gradient(135deg, var(--orange), var(--yellow));
+      border-color: transparent;
+      color: var(--dark);
+      font-weight: 800;
+    }
+
+    .btn-apply {
+      width: 100%;
+      background: linear-gradient(135deg, var(--orange), var(--yellow));
+      color: var(--dark);
+      border: none;
+      padding: 0.8rem;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 0.5rem;
+      box-shadow: 0 4px 16px rgba(232,83,10,0.3);
+    }
+
+    .btn-apply:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(232,83,10,0.45); }
+
+    /* CARDS ZONE */
+    .cards-zone { display: flex; flex-direction: column; gap: 1.2rem; }
+
+    /* CARD MATCH — style swipe */
+    .match-card {
+      background: rgba(20,16,0,0.85);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.8rem;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 1.5rem;
+      align-items: start;
+      transition: all 0.35s;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .match-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: linear-gradient(180deg, var(--orange), var(--yellow));
+      transform: scaleY(0);
+      transform-origin: top;
+      transition: transform 0.3s;
+    }
+
+    .match-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px rgba(232,83,10,0.12);
+    }
+
+    .match-card:hover::before { transform: scaleY(1); }
+
+    /* SCORE RING */
+    .score-ring {
+      width: 80px;
+      height: 80px;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .score-ring svg {
+      width: 80px;
+      height: 80px;
+      transform: rotate(-90deg);
+    }
+
+    .score-ring circle.track {
+      fill: none;
+      stroke: rgba(255,255,255,0.06);
+      stroke-width: 5;
+    }
+
+    .score-ring circle.fill {
+      fill: none;
+      stroke-width: 5;
+      stroke-linecap: round;
+      stroke-dasharray: 220;
+      stroke-dashoffset: 220;
+      transition: stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .score-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .score-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: white;
+      line-height: 1;
+    }
+
+    .score-pct { font-size: 0.6rem; color: var(--text-soft); }
+
+    /* MATCH BODY */
+    .match-body { flex: 1; }
+
+    .match-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.8rem; }
+
+    .match-avatar {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: white;
+      font-family: 'Playfair Display', serif;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .match-avatar .status {
+      position: absolute;
+      bottom: 2px; right: 2px;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      border: 2px solid var(--dark);
+    }
+
+    .status.online { background: #22c55e; }
+    .status.offline { background: rgba(255,255,255,0.2); }
+
+    .match-name-wrap h4 { font-size: 1rem; font-weight: 600; color: white; margin-bottom: 0.15rem; }
+    .match-name-wrap p { font-size: 0.78rem; color: var(--text-soft); font-weight: 300; }
+
+    .match-badges { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+
+    .mbadge {
+      font-size: 0.65rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
+    .mbadge-orange { background: rgba(232,83,10,0.15); color: var(--orange-light); border: 1px solid rgba(232,83,10,0.25); }
+    .mbadge-yellow { background: rgba(245,184,0,0.12); color: var(--yellow); border: 1px solid rgba(245,184,0,0.25); }
+    .mbadge-green { background: rgba(34,197,94,0.1); color: #4ade80; border: 1px solid rgba(34,197,94,0.25); }
+
+    .match-bio { font-size: 0.85rem; color: var(--text-mid); font-weight: 300; line-height: 1.6; margin-bottom: 1rem; }
+
+    /* COMPATIBILITY BARS */
+    .compat-bars { display: flex; flex-direction: column; gap: 0.5rem; }
+
+    .compat-row { display: flex; align-items: center; gap: 0.8rem; }
+
+    .compat-label { font-size: 0.72rem; color: var(--text-soft); width: 100px; flex-shrink: 0; }
+
+    .compat-bar-wrap { flex: 1; height: 5px; background: rgba(255,255,255,0.06); border-radius: 10px; overflow: hidden; }
+
+    .compat-bar-fill { height: 100%; border-radius: 10px; transition: width 1s ease; }
+
+    .compat-val { font-size: 0.72rem; color: var(--text-soft); width: 30px; text-align: right; }
+
+    /* MATCH ACTIONS */
+    .match-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      justify-content: center;
+      align-items: flex-end;
+    }
+
+    .btn-accept {
+      background: linear-gradient(135deg, var(--orange), var(--yellow));
+      color: var(--dark);
+      border: none;
+      padding: 0.7rem 1.4rem;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      white-space: nowrap;
+      box-shadow: 0 4px 16px rgba(232,83,10,0.3);
+    }
+
+    .btn-accept:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(232,83,10,0.45); }
+    .btn-accept:disabled { opacity: 0.5; cursor: default; transform: none; }
+
+    .btn-pass {
+      background: rgba(255,255,255,0.04);
+      color: var(--text-soft);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 0.7rem 1.4rem;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.25s;
+      white-space: nowrap;
+    }
+
+    .btn-pass:hover { border-color: rgba(255,255,255,0.2); color: white; }
+
+    .btn-view {
+      background: transparent;
+      color: var(--orange-light);
+      border: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: color 0.2s;
+      padding: 0.3rem;
+    }
+
+    .btn-view:hover { color: var(--yellow); }
+
+    /* ACCEPTED STATE */
+    .match-card.accepted {
+      border-color: rgba(34,197,94,0.3);
+      background: rgba(34,197,94,0.04);
+    }
+
+    .match-card.accepted::before {
+      background: #22c55e;
+      transform: scaleY(1);
+    }
+
+    /* EMPTY STATE */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-soft);
+    }
+
+    .empty-state .emoji { font-size: 3rem; margin-bottom: 1rem; }
+    .empty-state h3 { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: white; margin-bottom: 0.5rem; }
+    .empty-state p { font-size: 0.88rem; font-weight: 300; }
+
+    @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes slideOut { to{opacity:0;transform:translateX(60px) scale(0.95)} }
+
+    @media (max-width: 1100px) { .match-layout { grid-template-columns: 1fr; } .filters-panel { position: static; } }
+    @media (max-width: 768px) { .sidebar{transform:translateX(-100%)} .main{margin-left:0} .content{padding:1.5rem 1rem} .match-card{grid-template-columns:1fr; gap:1rem} .score-ring{display:none} .match-actions{flex-direction:row} }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <a class="logo-text" href="yela-dashboard.html">YEL<span>A</span></a>
+      <div class="logo-tagline">La jeunesse qui s'allume</div>
+    </div>
+    <div class="kente-strip"></div>
+    <div class="sidebar-user">
+      <div class="user-avatar">A</div>
+      <div class="user-info"><h4>Amina K.</h4><p>🔥 Membre Fondateur</p></div>
+      <div class="online-dot"></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Principal</div>
+      <a class="nav-item" href="yela-dashboard.html"><span class="nav-icon">🏠</span><span class="nav-label">Tableau de bord</span></a>
+      <a class="nav-item" href="#"><span class="nav-icon">🔥</span><span class="nav-label">Cercles</span><span class="nav-badge">3</span></a>
+      <a class="nav-item active" href="#"><span class="nav-icon">🤝</span><span class="nav-label">Mon Pair</span></a>
+      <a class="nav-item" href="#"><span class="nav-icon">💬</span><span class="nav-label">Messages</span><span class="nav-badge">5</span></a>
+      <a class="nav-item" href="#"><span class="nav-icon">📅</span><span class="nav-label">Sessions</span></a>
+      <div class="nav-section-label" style="margin-top:0.5rem">Moi</div>
+      <a class="nav-item" href="yela-profil.html"><span class="nav-icon">👤</span><span class="nav-label">Mon Profil</span></a>
+      <a class="nav-item" href="#"><span class="nav-icon">⭐</span><span class="nav-label">Ma Progression</span></a>
+      <a class="nav-item" href="#"><span class="nav-icon">⚙️</span><span class="nav-label">Paramètres</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="level-box">
+        <div class="level-header"><span class="level-label">Niveau actuel</span><span class="level-name">🌱 Graine</span></div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+        <div class="level-xp">340 / 500 XP</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2>Trouver mon Pair</h2>
+        <p>L'algorithme YELA a trouvé des profils compatibles avec toi</p>
+      </div>
+      <div class="topbar-filters">
+        <button class="filter-btn active" onclick="setFilter(this,'tous')">Tous</button>
+        <button class="filter-btn" onclick="setFilter(this,'top')">⭐ Top matches</button>
+        <button class="filter-btn" onclick="setFilter(this,'proches')">📍 Proches de moi</button>
+        <button class="filter-btn" onclick="setFilter(this,'nouveaux')">🆕 Nouveaux</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- HERO -->
+      <div class="match-hero">
+        <div class="orbit-wrap">
+          <div class="orbit orbit-1"><div class="orbit-dot"></div></div>
+          <div class="orbit orbit-2"><div class="orbit-dot"></div></div>
+          <div class="orbit orbit-3"></div>
+        </div>
+        <div class="hero-content">
+          <div class="hero-label">Algorithme YELA actif</div>
+          <h1>Tes <em>connexions</em> t'attendent</h1>
+          <p>YELA analyse tes passions, tes besoins et tes forces pour te connecter aux pairs qui peuvent vraiment changer ta trajectoire.</p>
+          <div class="hero-stats-row">
+            <div class="hstat"><div class="hstat-num" id="heroCount">0</div><div class="hstat-label">Pairs suggérés</div></div>
+            <div class="hstat"><div class="hstat-num">247</div><div class="hstat-label">Membres actifs</div></div>
+            <div class="hstat"><div class="hstat-num">92%</div><div class="hstat-label">Meilleur match</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LAYOUT -->
+      <div class="match-layout">
+
+        <!-- FILTRES -->
+        <div class="filters-panel">
+          <h3>🎯 Affiner la recherche</h3>
+
+          <div class="filter-section">
+            <div class="filter-section-title">Ce que je cherche</div>
+            <div class="filter-options">
+              <div class="filter-option selected" onclick="toggleFilter(this)"><div class="filter-check">✓</div> 💪 Confiance en soi</div>
+              <div class="filter-option selected" onclick="toggleFilter(this)"><div class="filter-check">✓</div> 🚀 Entrepreneuriat</div>
+              <div class="filter-option" onclick="toggleFilter(this)"><div class="filter-check"></div> 🧭 Orientation</div>
+              <div class="filter-option" onclick="toggleFilter(this)"><div class="filter-check"></div> 📚 Formation</div>
+              <div class="filter-option" onclick="toggleFilter(this)"><div class="filter-check"></div> 🌍 Réseau</div>
+            </div>
+          </div>
+
+          <div class="filter-section">
+            <div class="filter-section-title">Ville</div>
+            <div class="filter-options">
+              <div class="filter-option selected" onclick="toggleFilter(this)"><div class="filter-check">✓</div> 📍 Toutes les villes</div>
+              <div class="filter-option" onclick="toggleFilter(this)"><div class="filter-check"></div> Yaoundé</div>
+              <div class="filter-option" onclick="toggleFilter(this)"><div class="filter-check"></div> Douala</div>
+              <div class="filter-option" onclick="toggleFilter(this)"><div class="filter-check"></div> Bafoussam</div>
+            </div>
+          </div>
+
+          <div class="filter-section">
+            <div class="filter-section-title">Tranche d'âge</div>
+            <div class="filter-options">
+              <div class="filter-option selected" onclick="toggleFilter(this)"><div class="filter-check">✓</div> Tous les âges</div>
+              <div class="filter-option" onclick="toggleFilter(this)"><div class="filter-check"></div> 15 – 22 ans</div>
+              <div class="filter-option" onclick="toggleFilter(this)"><div class="filter-check"></div> 23 – 30 ans</div>
+            </div>
+          </div>
+
+          <button class="btn-apply">🔥 Appliquer les filtres</button>
+        </div>
+
+        <!-- CARDS -->
+        <div class="cards-zone" id="cardsZone">
+
+          <!-- CARD 1 — 92% -->
+          <div class="match-card" id="card1">
+            <div class="score-ring">
+              <svg viewBox="0 0 80 80">
+                <circle class="track" cx="40" cy="40" r="35"/>
+                <circle class="fill" cx="40" cy="40" r="35" stroke="url(#g1)" data-score="92"/>
+              </svg>
+              <defs>
+                <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#E8530A"/>
+                  <stop offset="100%" stop-color="#F5B800"/>
+                </linearGradient>
+              </defs>
+              <div class="score-center"><div class="score-num">92%</div><div class="score-pct">match</div></div>
+            </div>
+
+            <div class="match-body">
+              <div class="match-header">
+                <div class="match-avatar" style="background:linear-gradient(135deg,#E8530A,#F5B800)">
+                  F<div class="status online"></div>
+                </div>
+                <div class="match-name-wrap">
+                  <h4>Fatou Diallo</h4>
+                  <p>📍 Douala · 22 ans · Étudiante en gestion</p>
+                </div>
+                <div class="match-badges">
+                  <span class="mbadge mbadge-orange">🚀 Entrepreneuriat</span>
+                  <span class="mbadge mbadge-yellow">💡 Idéatrice</span>
+                  <span class="mbadge mbadge-green">● En ligne</span>
+                </div>
+              </div>
+              <p class="match-bio">"Passionnée par l'entrepreneuriat social et l'innovation africaine. Je cherche quelqu'un pour co-développer mes idées de projet et me challenger intellectuellement. Je donne en échange ma rigueur et ma vision business."</p>
+              <div class="compat-bars">
+                <div class="compat-row">
+                  <span class="compat-label">Passions communes</span>
+                  <div class="compat-bar-wrap"><div class="compat-bar-fill" style="width:0%;background:linear-gradient(90deg,#E8530A,#F5B800)" data-w="95"></div></div>
+                  <span class="compat-val">95%</span>
+                </div>
+                <div class="compat-row">
+                  <span class="compat-label">Complémentarité</span>
+                  <div class="compat-bar-wrap"><div class="compat-bar-fill" style="width:0%;background:linear-gradient(90deg,#F5B800,#22c55e)" data-w="88"></div></div>
+                  <span class="compat-val">88%</span>
+                </div>
+                <div class="compat-row">
+                  <span class="compat-label">Objectifs alignés</span>
+                  <div class="compat-bar-wrap"><div class="compat-bar-fill" style="width:0%;background:linear-gradient(90deg,#E8530A,#F5B800)" data-w="91"></div></div>
+                  <span class="compat-val">91%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="match-actions">
+              <button class="btn-accept" onclick="acceptMatch('card1', this)">🤝 Accepter</button>
+              <button class="btn-pass" onclick="passMatch('card1')">Passer →</button>
+              <button class="btn-view">Voir profil ↗</button>
+            </div>
+          </div>
+
+          <!-- CARD 2 — 87% -->
+          <div class="match-card" id="card2">
+            <div class="score-ring">
+              <svg viewBox="0 0 80 80">
+                <circle class="track" cx="40" cy="40" r="35"/>
+                <circle class="fill" cx="40" cy="40" r="35" stroke="url(#g2)" data-score="87"/>
+              </svg>
+              <defs>
+                <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#0a5ce8"/>
+                  <stop offset="100%" stop-color="#00b4d8"/>
+                </linearGradient>
+              </defs>
+              <div class="score-center"><div class="score-num">87%</div><div class="score-pct">match</div></div>
+            </div>
+
+            <div class="match-body">
+              <div class="match-header">
+                <div class="match-avatar" style="background:linear-gradient(135deg,#0a5ce8,#00b4d8)">
+                  J<div class="status online"></div>
+                </div>
+                <div class="match-name-wrap">
+                  <h4>Jean-Paul Essama</h4>
+                  <p>📍 Yaoundé · 24 ans · Étudiant en droit</p>
+                </div>
+                <div class="match-badges">
+                  <span class="mbadge mbadge-orange">💪 Confiance en soi</span>
+                  <span class="mbadge mbadge-yellow">🎙️ Prise de parole</span>
+                </div>
+              </div>
+              <p class="match-bio">"Je suis passé d'un jeune très introverti à quelqu'un qui prend la parole devant 200 personnes. Je veux partager ce parcours et aider d'autres jeunes à surmonter leurs blocages sociaux."</p>
+              <div class="compat-bars">
+                <div class="compat-row">
+                  <span class="compat-label">Passions communes</span>
+                  <div class="compat-bar-wrap"><div class="compat-bar-fill" style="width:0%;background:linear-gradient(90deg,#0a5ce8,#00b4d8)" data-w="80"></div></div>
+                  <span class="compat-val">80%</span>
+                </div>
+                <div class="compat-row">
+                  <span class="compat-label">Complémentarité</span>
+                  <div class="compat-bar-wrap"><div class="compat-bar-fill" style="width:0%;background:linear-gradient(90deg,#F5B800,#22c55e)" data-w="93"></div></div>
+                  <span class="compat-val">93%</span>
+                </div>
+                <div class="compat-row">
+                  <span class="compat-label">Objectifs alignés</span>
+                  <div class="compat-bar-wrap"><div class="compat-bar-fill" style="width:0%;background:linear-gradient(90deg,#0a5ce8,#00b4d8)" data-w="85"></div></div>
+                  <span class="compat-val">85%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="match-actions">
+              <button class="btn-accept" onclick="acceptMatch('card2', this)">🤝 Accepter</button>
+              <button class="btn-pass" onclick="passMatch('card2')">Passer →</button>
+              <button class="btn-view">Voir profil ↗</button>
+            </div>
+          </div>
+
+          <!-- CARD 3 — 81% -->
+          <div class="match-card" id="card3">
+            <div class="score-ring">
+              <svg viewBox="0 0 80 80">
+                <circle class="track" cx="40" cy="40" r="35"/>
+                <circle class="fill" cx="40" cy="40" r="35" stroke="url(#g3)" data-score="81"/>
+              </svg>
+              <defs>
+                <linearGradient id="g3" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#4a7c5f"/>
+                  <stop offset="100%" stop-color="#a8e063"/>
+                </linearGradient>
+              </defs>
+              <div class="score-center"><div class="score-num">81%</div><div class="score-pct">match</div></div>
+            </div>
+
+            <div class="match-body">
+              <div class="match-header">
+                <div class="match-avatar" style="background:linear-gradient(135deg,#4a7c5f,#a8e063)">
+                  N<div class="status offline"></div>
+                </div>
+                <div class="match-name-wrap">
+                  <h4>Nadia Tchamba</h4>
+                  <p>📍 Bafoussam · 20 ans · Lycéenne terminale</p>
+                </div>
+                <div class="match-badges">
+                  <span class="mbadge mbadge-yellow">🧭 Orientation</span>
+                  <span class="mbadge mbadge-orange">🌱 Développement perso</span>
+                </div>
+              </div>
+              <p class="match-bio">"Je suis à un carrefour de ma vie — je dois choisir ma filière et je ne sais pas encore vraiment qui je suis. Je cherche quelqu'un qui peut m'aider à me découvrir et me donner confiance pour avancer."</p>
+              <div class="compat-bars">
+                <div class="compat-row">
+                  <span class="compat-label">Passions communes</span>
+                  <div class="compat-bar-wrap"><div class="compat-bar-fill" style="width:0%;background:linear-gradient(90deg,#4a7c5f,#a8e063)" data-w="75"></div></div>
+                  <span class="compat-val">75%</span>
+                </div>
+                <div class="compat-row">
+                  <span class="compat-label">Complémentarité</span>
+                  <div class="compat-bar-wrap"><div class="compat-bar-fill" style="width:0%;background:linear-gradient(90deg,#F5B800,#22c55e)" data-w="88"></div></div>
+                  <span class="compat-val">88%</span>
+                </div>
+                <div class="compat-row">
+                  <span class="compat-label">Objectifs alignés</span>
+                  <div class="compat-bar-wrap"><div class="compat-bar-fill" style="width:0%;background:linear-gradient(90deg,#4a7c5f,#a8e063)" data-w="78"></div></div>
+                  <span class="compat-val">78%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="match-actions">
+              <button class="btn-accept" onclick="acceptMatch('card3', this)">🤝 Accepter</button>
+              <button class="btn-pass" onclick="passMatch('card3')">Passer →</button>
+              <button class="btn-view">Voir profil ↗</button>
+            </div>
+          </div>
+
+          <!-- CARD 4 — 74% -->
+          <div class="match-card" id="card4">
+            <div class="score-ring">
+              <svg viewBox="0 0 80 80">
+                <circle class="track" cx="40" cy="40" r="35"/>
+                <circle class="fill" cx="40" cy="40" r="35" stroke="url(#g4)" data-score="74"/>
+              </svg>
+              <defs>
+                <linearGradient id="g4" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#7c4a7c"/>
+                  <stop offset="100%" stop-color="#e040fb"/>
+                </linearGradient>
+              </defs>
+              <div class="score-center"><div class="score-num">74%</div><div class="score-pct">match</div></div>
+            </div>
+
+            <div class="match-body">
+              <div class="match-header">
+                <div class="match-avatar" style="background:linear-gradient(135deg,#7c4a7c,#e040fb)">
+                  B<div class="status online"></div>
+                </div>
+                <div class="match-name-wrap">
+                  <h4>Brice Nguemo</h4>
+                  <p>📍 Yaoundé · 26 ans · Développeur freelance</p>
+                </div>
+                <div class="match-badges">
+                  <span class="mbadge mbadge-orange">💻 Tech</span>
+                  <span class="mbadge mbadge-yellow">🌍 Impact Social</span>
+                  <span class="mbadge mbadge-green">● En ligne</span>
+                </div>
+              </div>
+              <p class="match-bio">"Développeur passionné qui cherche à créer des solutions numériques pour les problèmes africains. J'ai des skills tech mais je manque de vision business et de réseau pour passer à l'échelle."</p>
+              <div class="compat-bars">
+                <div class="compat-row">
+                  <span class="compat-label">Passions communes</span>
+                  <div class="compat-bar-wrap"><div class="compat-bar-fill" style="width:0%;background:linear-gradient(90deg,#7c4a7c,#e040fb)" data-w="85"></div></div>
+                  <span class="compat-val">85%</span>
+                </div>
+                <div class="compat-row">
+                  <span class="compat-label">Complémentarité</span>
+                  <div class="compat-bar-wrap"><div class="compat-bar-fill" style="width:0%;background:linear-gradient(90deg,#F5B800,#22c55e)" data-w="70"></div></div>
+                  <span class="compat-val">70%</span>
+                </div>
+                <div class="compat-row">
+                  <span class="compat-label">Objectifs alignés</span>
+                  <div class="compat-bar-wrap"><div class="compat-bar-fill" style="width:0%;background:linear-gradient(90deg,#7c4a7c,#e040fb)" data-w="66"></div></div>
+                  <span class="compat-val">66%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="match-actions">
+              <button class="btn-accept" onclick="acceptMatch('card4', this)">🤝 Accepter</button>
+              <button class="btn-pass" onclick="passMatch('card4')">Passer →</button>
+              <button class="btn-view">Voir profil ↗</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Progress bar
+    setTimeout(() => { document.getElementById('progressFill').style.width = '68%'; }, 500);
+
+    // Animate hero counter
+    function animCount(el, target, delay=800) {
+      setTimeout(() => {
+        let v = 0;
+        const step = target / 30;
+        const t = setInterval(() => {
+          v += step;
+          if (v >= target) { el.textContent = target; clearInterval(t); }
+          else el.textContent = Math.floor(v);
+        }, 30);
+      }, delay);
+    }
+    animCount(document.getElementById('heroCount'), 4);
+
+    // Animate score rings + bars on load
+    setTimeout(() => {
+      document.querySelectorAll('.score-ring circle.fill').forEach(c => {
+        const score = parseInt(c.dataset.score);
+        const circumference = 220;
+        const offset = circumference - (score / 100) * circumference;
+        c.style.strokeDashoffset = offset;
+      });
+      document.querySelectorAll('.compat-bar-fill').forEach(b => {
+        b.style.width = b.dataset.w + '%';
+      });
+    }, 400);
+
+    // Accept match
+    function acceptMatch(id, btn) {
+      const card = document.getElementById(id);
+      card.classList.add('accepted');
+      btn.textContent = '✓ Connecté !';
+      btn.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
+      btn.style.boxShadow = '0 4px 16px rgba(34,197,94,0.3)';
+      btn.disabled = true;
+      card.querySelector('.btn-pass').style.display = 'none';
+    }
+
+    // Pass match
+    function passMatch(id) {
+      const card = document.getElementById(id);
+      card.style.animation = 'slideOut 0.35s ease forwards';
+      setTimeout(() => {
+        card.style.display = 'none';
+        checkEmpty();
+      }, 350);
+    }
+
+    function checkEmpty() {
+      const visible = [...document.querySelectorAll('.match-card')].filter(c => c.style.display !== 'none');
+      if (visible.length === 0) {
+        document.getElementById('cardsZone').innerHTML = `
+          <div class="empty-state">
+            <div class="emoji">🌍</div>
+            <h3>Tu as vu tous les profils !</h3>
+            <p>Reviens demain — YELA trouve de nouveaux pairs chaque jour.</p>
+          </div>`;
+      }
+    }
+
+    // Filters
+    function setFilter(btn, type) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function toggleFilter(el) {
+      el.classList.toggle('selected');
+      const check = el.querySelector('.filter-check');
+      if (el.classList.contains('selected')) check.textContent = '✓';
+      else check.textContent = '';
+    }
+  </script>
+
+</body>
+</html>
